@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from dotenv import load_dotenv
 
-from db import Database
+from db import Database, db
 from states import Survey, Product
 import service as service
 
@@ -18,13 +18,7 @@ TOKEN = os.getenv("TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-db = Database(
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    database=os.getenv("DB_NAME"),
-    host=os.getenv("DB_HOST"),
-    port=os.getenv("DB_PORT"),
-)
+
 
 @dp.message(CommandStart())
 async def start(message: types.Message):

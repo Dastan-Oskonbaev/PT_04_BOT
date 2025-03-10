@@ -1,4 +1,10 @@
+import os
+
 import asyncpg
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class Database:
     def __init__(self, user, password, database, host='localhost', port=5432):
@@ -41,3 +47,21 @@ class Database:
                 """,
                 tg_id, username, first_name, last_name
             )
+
+    async def add_survey_results(self, user_id, name, age, hobby):
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO surveys(user_id, name, age, hobby)
+                VALUES ($1, $2, $3, $4)
+                """,
+                user_id, name, age, hobby
+            )
+
+
+db = Database(
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME"),
+    host=os.getenv("DB_HOST")
+)

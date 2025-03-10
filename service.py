@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 
 from keyboards import inline_kb, confirm_keyboard
 from states import Survey
-
+from db import db
 
 async def survey_text_handler(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
@@ -18,6 +18,7 @@ async def survey_age_handler(message: Message, state: FSMContext):
 
 
 async def survey_hobby_handler(message: Message, state: FSMContext):
+    user_id = await db.check_user(message.chat.id)
     data = await state.get_data()
     name = data.get("name")
     age = data.get("age")
@@ -25,6 +26,7 @@ async def survey_hobby_handler(message: Message, state: FSMContext):
     await message.answer(
         f"CONGRATS {name}!\n You are {age} years old!\n Your hobby is {hobby}"
     )
+    await db.add_survey_results(user_id['id'], name, age, hobby)
     await state.clear()
 
 
