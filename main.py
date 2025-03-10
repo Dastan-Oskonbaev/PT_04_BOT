@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from dotenv import load_dotenv
 
+from db import Database
 from states import Survey, Product
 import service as service
 
@@ -16,6 +17,14 @@ TOKEN = os.getenv("TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
+
+db = Database(
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME"),
+    host=os.getenv("DB_HOST"),
+    port=os.getenv("DB_PORT"),
+)
 
 @dp.message(CommandStart())
 async def start(message: types.Message):
@@ -50,6 +59,9 @@ async def photo_handler(message: types.Message):
 
 @dp.message()
 async def echo(message: types.Message, state: FSMContext):
+    user_tg_id = await db.check_user(message.chat.id)
+    if user_tg_id is None:
+        await db.add_user(message.chat.id, message.chat.username, message.chat.first_name, message.chat.last_name)
     current_state = await state.get_state()
     if current_state is not None:
         if current_state.startswith("Survey"):
@@ -68,7 +80,13 @@ async def echo(message: types.Message, state: FSMContext):
 
 async def main():
     print("Bot started...")
-    await dp.start_polling(bot)
+    await db.connect()
+    try:
+        await dp.start_polling(bot)
+    except Exception as e:
+        print(e)
+    finally:
+        await db.disconnect()
 
 
 if __name__ == '__main__':
