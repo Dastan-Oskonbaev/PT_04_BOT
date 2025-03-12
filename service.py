@@ -1,9 +1,39 @@
+import os
+
+from aiogram.client.session import aiohttp
 from aiogram.types import Message, FSInputFile
 from aiogram.fsm.context import FSMContext
+from dotenv import load_dotenv
+from openai import OpenAI
 
 from keyboards import inline_kb, confirm_keyboard
 from states import Survey
 from db import db
+
+load_dotenv()
+
+OPENAI_API_KEY=os.getenv('OPENAI_API_KEY')
+WEATHER_API_KEY=os.getenv('WEATHER_API_KEY')
+
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+async def chat_with_openai(message: Message, prompt):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user",
+                       "content": message.text
+                       },
+                      {"role": "system",
+                       "content": f"{prompt}"
+
+                       }],
+        )
+        reply_text = response.choices[0].message.content
+        await message.answer(reply_text)
+    except Exception as e:
+        print(e)
+
 
 async def survey_text_handler(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
@@ -41,12 +71,12 @@ async def main_survey_handler(message: Message, state: FSMContext):
 
 
 async def text_handler(message: Message):
-    if message.text == "💡 Adilet":
-        p = FSInputFile("rolex.jpeg")
-        await message.answer_photo(p, "🎵🎵🎵Это черный пистолет ХЕЙ🎵🎵🎵🎵"
-                                      "🎵🎵🎵Это черный пистолет ХЕЙ🎵🎵🎵🎵")
-    elif message.text == "🏞 Sayan" or message.text == "💡 Laura":
-        await message.answer_sticker("CAACAgIAAxkBAANlZ7xdQWDZ81rjY5RQ698ZO_nSvEYAAikAAwzfKCydkWe2NO6C9TYE")
+    if message.text == "💡 Картинка":
+        pass
+        # Здесь вы отправляете inline клавиатуру
+    elif message.text == "🏞 Погода":
+        weather = await get_weather()
+        await message.answer(weather)
     elif message.text == "🏞 Muhammad":
         await message.answer_sticker("CAACAgIAAxkBAANEZ7xbsCWHc5rtPTJT8Sr-VjpUW6UAAj4AAwzfKCycoDBeXCS3DzYE")
     elif message.text == "show_kb":
@@ -62,4 +92,22 @@ async def text_handler(message: Message):
             reply_markup=confirm_keyboard
         )
     else:
-        await message.answer(f"You typed {message.text}")
+        await message.answer("sdfsd")
+
+
+async def get_weather():
+    url = f"https://api.openweathermap.org/data/2.5/weather?q=Бишкек&appid={WEATHER_API_KEY}&units=metric"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                type_ = data["weather"][0]["main"]
+                temp_c = data["main"]["temp"]
+                feels_like = data["main"]["feels_like"]
+                city = data["name"]
+                return f"Погода в городе {city}:{type_}\n Температура:{temp_c}\n Чувствуется как:{feels_like}"
+            else:
+                return f"Произошла ошибка"
+
+
+

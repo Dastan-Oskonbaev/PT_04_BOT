@@ -4,10 +4,11 @@ import os
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, FSInputFile
 from dotenv import load_dotenv
 
-from db import Database, db
+from db import db
+from keyboards import inline_kb
 from states import Survey, Product
 import service as service
 
@@ -22,12 +23,15 @@ dp = Dispatcher()
 
 @dp.message(CommandStart())
 async def start(message: types.Message):
-    await message.answer("Hello This is your first bot !!!")
+    await message.answer("Hello This is your first bot !!!",
+                         reply_markup=inline_kb)
 
 @dp.callback_query()
 async def callback_query_handler(call: types.CallbackQuery):
     if call.data == "confirm_send_email":
-        await call.message.answer("Hello This is your second bot !!!", reply_markup=None)
+        p = FSInputFile("rolex.jpeg")
+        await call.message.answer_photo("")
+
 
 
 @dp.message(Command('survey'))
