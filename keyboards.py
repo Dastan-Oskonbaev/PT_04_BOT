@@ -1,20 +1,18 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram import types
 
-inline_kb = types.ReplyKeyboardMarkup(
+start_kb = types.ReplyKeyboardMarkup(
     keyboard=[
             [
-                types.KeyboardButton(text='💡 Картинка'),
-                types.KeyboardButton(text='🏞 Погода'),
+                types.KeyboardButton(text='💡 Список учеников'),
+                types.KeyboardButton(text='🏞 Расписание'),
             ],
             [
-                types.KeyboardButton(text='💡 Курс валют'),
-                types.KeyboardButton(text='🏞 Список фильмов'),
+                types.KeyboardButton(text='💡 Оценки за четверть по предметам'),
+                types.KeyboardButton(text='🏞 Предметы и темы'),
             ],
             [
-                types.KeyboardButton(text='💡 Шутка'),
-                types.KeyboardButton(text='🏞 Пройти опрос'),
-            ],
+                types.KeyboardButton(text='Дополнительная информация')
+            ]
         ],
         resize_keyboard=True,
 )

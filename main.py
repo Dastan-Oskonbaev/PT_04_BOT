@@ -8,7 +8,7 @@ from aiogram.types import Message, FSInputFile
 from dotenv import load_dotenv
 
 from db import db
-from keyboards import inline_kb
+from keyboards import start_kb
 from states import Survey, Product
 import service as service
 
@@ -23,8 +23,10 @@ dp = Dispatcher()
 
 @dp.message(CommandStart())
 async def start(message: types.Message):
-    await message.answer("Hello This is your first bot !!!",
-                         reply_markup=inline_kb)
+    await message.answer("Здравствуйте !!!\n"
+                         "Я ваш цифровой AI помощник от школы\n"
+                         "Вы можете в текстовом формате задать вопрос или пройти по кнопкам и узнать необходимую информацию",
+                         reply_markup=start_kb)
 
 @dp.callback_query()
 async def callback_query_handler(call: types.CallbackQuery):

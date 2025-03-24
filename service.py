@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from keyboards import inline_kb, confirm_keyboard
+from keyboards import start_kb, confirm_keyboard
 from states import Survey
 from db import db
 
@@ -15,24 +15,68 @@ load_dotenv()
 OPENAI_API_KEY=os.getenv('OPENAI_API_KEY')
 WEATHER_API_KEY=os.getenv('WEATHER_API_KEY')
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+# client = OpenAI(api_key=OPENAI_API_KEY)
 
-async def chat_with_openai(message: Message, prompt):
+# async def chat_with_openai(message: Message):
+#     try:
+#         response = client.chat.completions.create(
+#             model="gpt-4o",
+#             messages=[{"role": "user",
+#                        "content": message.text
+#                        },
+#                       {
+#                           "role": "system",
+#                           "content": "Ты мой профессиональный помощник. Твоя задача отвечать только на вопросы по географии"
+#                                      "Если тебе задают вопрос на другую тему , вежливо откажи."
+#                       }
+#                       ],
+#         )
+#         reply_text = response.choices[0].message.content
+#         await message.answer(reply_text)
+#     except Exception as e:
+#         print(e)
+
+
+
+async def chat_with_ai(message: Message):
     try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{"role": "user",
-                       "content": message.text
-                       },
-                      {"role": "system",
-                       "content": f"{prompt}"
-
-                       }],
+        client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=f"{OPENAI_API_KEY}",
         )
-        reply_text = response.choices[0].message.content
+
+        completion = client.chat.completions.create(
+            model="google/gemma-2-9b-it:free",
+            temperature=1,
+            messages=[
+                    {
+                        "role": "user",
+                        "content": message.text
+                    },
+                    {
+                      "role": "system",
+                      "content": "Ты мой помощник, Твоя роль отвечать на вопросы, чуть ниже я тебе напишу вопрос - ответ, "
+                                 "если что используй их"
+                                 "Вопросы и Ответы про наш класс:"
+                                 "Ментор - Дастан"
+                                 "Техподдержка - Сабина"
+                                 "В классе 14 учеников. "
+                                 "Школа находится по адресу город Бишкек 7й микрорайон дом 26"
+                                 "В классе есть двоечники Мирислам, Мирослав, Тимур, Нурислам, Амир, Мелина, Жаннат"
+                                 "Отличник Макар, Нурель"
+                                 "Ученики которые учатся на 4: Алтынай, Никита, Ариет, Агахан"
+                                 "Больше всех опаздывает и пропускает - Мелина, Жаннат"
+                                 "Больше всех и постоянно болеет - Мирислам"
+                                 "Самый красивый и умный человек в группе - Ментор"
+                                 "Ближайшее родительское собрание 30 марта в 19 00"
+                  }
+                ]
+            )
+        reply_text = completion.choices[0].message.content
         await message.answer(reply_text)
     except Exception as e:
         print(e)
+
 
 
 async def survey_text_handler(message: Message, state: FSMContext):
@@ -85,14 +129,16 @@ async def text_handler(message: Message):
                 f'🔥 Вы в режиме работы с контрагентами\n\n'
                 f'Выберите желаемое действие 👇\n\n'
             ),
-            reply_markup=inline_kb)
+            reply_markup=start_kb)
     elif message.text == "inline_kb":
         await message.answer(
             text="Вы уверены, что хотите отправить этот файл по email?",
             reply_markup=confirm_keyboard
         )
     else:
-        await message.answer("sdfsd")
+        # Здесь идет функция которая вытаскивет из бд любимую тему юзера
+        # prompt = Здесь вытаскиваете промпт для тему юзера
+        await chat_with_ai(message)
 
 
 async def get_weather():
@@ -108,6 +154,4 @@ async def get_weather():
                 return f"Погода в городе {city}:{type_}\n Температура:{temp_c}\n Чувствуется как:{feels_like}"
             else:
                 return f"Произошла ошибка"
-
-
 
